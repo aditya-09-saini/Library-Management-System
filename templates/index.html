@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>KnowledgeKart - Lightweight Library</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+  <header>
+    <div class="navbar">
+      <div class="logo">KnowledgeKart</div>
+        <nav class="navbar">
+          <div class="navbar">
+            {% if session.get('user_id') %}
+              <span>Welcome, {{ session.get('username') }}</span>
+              <a href="{{ url_for('logout') }}"><button>Logout</button></a>
+            {% else %}
+              <a href="{{ url_for('login') }}"><button>Login</button></a>
+            {% endif %}
+          </div>
+        </nav>
+
+    </div>
+  </header>
+
+  <main>
+    <section class="search-section">
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="Search books by title, author or category..."
+      />
+    </section>
+
+    <section class="categories-section">
+      <button class="category-btn active" data-category="All">All</button>
+      <button class="category-btn" data-category="Math">Math</button>
+      <button class="category-btn" data-category="Linux">Linux</button>
+      <button class="category-btn" data-category="Operating_System">Operating System</button>
+      <button class="category-btn" data-category="Python">Python</button>
+    </section>
+
+    <section class="books-section" id="booksContainer">
+      <!-- Book cards inserted here by JS -->
+    </section>
+  </main>
+
+  <button id="chatbotToggle"><img src="{{ url_for('static', filename='chatbot_logo.png') }}" alt="Logo" width="50" height="50" style="vertical-align:middle;">
+</button>
+
+  <section id="chatbot" class="hidden">
+    <header>KnowledgeKart Assistant</header>
+    <div id="chatMessages"></div>
+    <div id="chatInputContainer">
+    <input type="text" id="chatInput" placeholder="Ask me anything..." />
+    <button id="sendChatBtn">Send</button>
+    </div>
+
+  </section>
+
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
