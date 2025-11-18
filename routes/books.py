@@ -1,30 +1,26 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, jsonify
 from db import get_db_connection
 
-books_bp = Blueprint('books', __name__, url_prefix='/books')
+books_bp = Blueprint('books_bp', __name__)
 
-@books_bp.route('/', methods=['GET'])
+@books_bp.route('/api/books')
 def get_books():
-    category = request.args.get('category')
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-
-    if category:
-        # Filter by category name (not id)
-        cursor.execute("""
-            SELECT b.id, b.title, b.author, c.name AS category, b.available_copies
+    """Get all books with their details"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        query = """
+            SELECT b.id, b.title, b.author, c.name as category,
+                   b.available_copies, b.total_copies
             FROM books b
-            LEFT JOIN categories c ON b.category_id = c.id
-            WHERE c.name = %s
-        """, (category,))
-    else:
-        cursor.execute("""
-            SELECT b.id, b.title, b.author, c.name AS category, b.available_copies
-            FROM books b
-            LEFT JOIN categories c ON b.category_id = c.id
-        """)
-
-    books = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    return jsonify(books)
+            JOIN categories c ON b.category_id = c.id
+            ORDER BY b.title
+        """
+        cursor.execute(query)
+        books = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return jsonify({'books': books})
+    except Exception as e:
+        print(f"Error fetching books: {e}")
+        return jsonify({'books': [], 'error': str(e)}), 500
