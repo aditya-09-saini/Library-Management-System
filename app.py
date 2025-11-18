@@ -1,48 +1,70 @@
-from flask import Flask, render_template, redirect, url_for, request, session, flash
+from flask import Flask, render_template, request, jsonify, session
+from flask_cors import CORS
+from datetime import datetime, timedelta
+from db import get_db_connection
 from routes.books import books_bp
 from routes.borrow import borrow_bp
-from routes.chatbot import chatbot_bp
-from db import get_db_connection
 
 app = Flask(__name__)
-app.secret_key = "supersecretkey"  # Needed for session management
+app.secret_key = 'your_secret_key_here_change_in_production'
+CORS(app)
 
-# Register blueprints
 app.register_blueprint(books_bp)
 app.register_blueprint(borrow_bp)
-app.register_blueprint(chatbot_bp)
 
 @app.route('/')
-def home():
-    return render_template('index.html')
+def index():
+    """Login page"""
+    return render_template('login.html')
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/home')
+def home():
+    """Home page with books"""
+    return render_template('home.html')
+
+@app.route('/login', methods=['POST'])
 def login():
-    error = None
-    if request.method == 'POST':
-        user_id = request.form['user_id']
-        password = request.form['password']
+    """Handle login requests"""
+    try:
+        data = request.get_json()
+        username = data.get('username')
+        password = data.get('password')
+
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM users WHERE id=%s AND password_hash=%s", (user_id, password))
+        
+        # Check credentials
+        cursor.execute(
+            "SELECT id, username, role FROM users WHERE username = %s AND password_hash = %s",
+            (username, password)
+        )
         user = cursor.fetchone()
+        
         cursor.close()
         conn.close()
+
         if user:
             session['user_id'] = user['id']
             session['username'] = user['username']
             session['role'] = user['role']
-            flash('Logged in successfully.')
-            return redirect(url_for('home'))
+            
+            return jsonify({
+                'success': True,
+                'user_id': user['id'],
+                'username': user['username'],
+                'role': user['role']
+            })
         else:
-            error = "Invalid ID or password"
-    return render_template('login.html', error=error)
-
-@app.route('/logout')
-def logout():
-    session.clear()
-    flash('Logged out successfully.')
-    return redirect(url_for('login'))
+            return jsonify({
+                'success': False,
+                'message': 'Invalid username or password'
+            })
+    except Exception as e:
+        print(f"Login error: {e}")
+        return jsonify({
+            'success': False,
+            'message': 'An error occurred during login'
+        }), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5000)
