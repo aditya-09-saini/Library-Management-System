@@ -1,9 +1,11 @@
 import mysql.connector
+DB_CONFIG = {
+    'host': 'localhost',
+    'user': 'root',
+    'password': 'aditya03',  # Change this
+    'database': 'library'
+}
 
 def get_db_connection():
-    return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="aditya03",   
-        database="library_db"
-    )
+    """Create and return a database connection"""
+    return mysql.connector.connect(**DB_CONFIG)
